@@ -1,0 +1,14 @@
+{
+  "name": "words-grabber",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node --harmony src"
+  },
+  "dependencies": {
+    "jsonfile": "^2.4.0",
+    "ramda": "^0.23.0",
+    "superagent": "^3.4.4"
+  }
+}
