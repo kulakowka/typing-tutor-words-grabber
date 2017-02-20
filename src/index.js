@@ -41,23 +41,39 @@ async function parseData (lang) {
   const url = DATA_SOURCE[lang]
   const data = await request.get(url)
   const words = pluck('word', data.body)
-  const file = `data/top-1000-popular-${lang}-words.json`
-  const trainingData = createTrainigData(lang, words)
+  const id = `top-1000-popular-${lang}-words`
+  const file = `data/${id}.json`
+  const trainingData = createTrainigData(id, lang, words)
 
   jsonfile.writeFile(file, trainingData, {spaces: 2}, function (err) {
     if (err) console.error(err)
-    console.log(`${words.length} words for ${lang} saved to ${file}`)
+    console.log(`${trainingData.lessons.length} words for ${lang} saved to ${file}`)
   })
 }
 
-function createTrainigData (lang, words) {
+function isGoodWord (word) {
+  word = word.toString()
+  return (
+    word.length > 3 &&
+    word.length < 25 &&
+    (/\d|/mi.test(word))
+  )
+}
+
+function mapLangToMode (lang) {
+  const modes = {
+    html: 'htmlmixed'
+  }
+
+  return modes[lang] || lang
+}
+
+function createTrainigData (id, lang, words) {
   return {
-    id: `popular-${lang}-words`,
+    id: id,
     name: `Popular ${lang} words training`,
-    mode: lang,
-    level: 'beginner',
-    logo: `images/languages/${lang}.png`,
-    lessons: words.map(word => ({
+    mode: mapLangToMode(lang),
+    lessons: words.filter(isGoodWord).map(word => ({
       exercise: '',
       example: word
     }))
