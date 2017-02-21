@@ -1,5 +1,5 @@
 const request = require('superagent')
-const { keys, pluck } = require('ramda')
+const { descend, sort, prop, keys, pluck } = require('ramda')
 const jsonfile = require('jsonfile')
 
 const DATA_SOURCE = {
@@ -37,11 +37,14 @@ const DATA_SOURCE = {
   vim: 'https://anvaka.github.io/common-words/static/data/vim/context.json'
 }
 
+const byUseCount = descend(prop('useCount'))
+
 async function parseData (lang) {
   const url = DATA_SOURCE[lang]
   const data = await request.get(url)
-  const words = pluck('word', data.body)
-  const id = `top-1000-popular-${lang}-words`
+  const sortedData = sort(byUseCount, data.body)
+  const words = pluck('word', sortedData)
+  const id = `top-100-popular-${lang}-words`
   const file = `data/${id}.json`
   const trainingData = createTrainigData(id, lang, words)
 
@@ -62,7 +65,10 @@ function isGoodWord (word) {
 
 function mapLangToMode (lang) {
   const modes = {
-    html: 'htmlmixed'
+    html: 'htmlmixed',
+    clj: 'clojure',
+    jsx: 'javascript',
+    js: 'javascript'
   }
 
   return modes[lang] || lang
@@ -70,10 +76,9 @@ function mapLangToMode (lang) {
 
 function createTrainigData (id, lang, words) {
   return {
-    id: id,
-    name: `Popular ${lang} words training`,
+    name: `Top 100 popular ${lang} words`,
     mode: mapLangToMode(lang),
-    lessons: words.filter(isGoodWord).map(word => ({
+    lessons: words.filter(isGoodWord).slice(0, 100).map(word => ({
       exercise: '',
       example: word
     }))
@@ -85,5 +90,3 @@ var r = keys(DATA_SOURCE).map(parseData)
 Promise
   .all(r)
   .catch(console.error)
-
-
